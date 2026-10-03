@@ -1,6 +1,5 @@
 package edu.unicauca.unipass
 
-import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,24 +8,38 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.AssistChip
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
 @Composable
 fun PantallaDetalle(
+    id: Int,
+    viewModel: OfertasViewModel,
     onVolver: () -> Unit = {}
 ) {
+
+    // remember(id): evita crear un Flow nuevo en cada recomposición
+    val flujo = remember(id) { viewModel.ofertaPorId(id) }
+    val oferta by flujo.collectAsState(initial = null)
 
     Column(
         modifier = Modifier
@@ -34,167 +47,103 @@ fun PantallaDetalle(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        TextButton(
-            onClick = {
-                onVolver()
-            }
-        ) {
+        TextButton(onClick = onVolver) {
             Text("← Volver")
         }
 
-        Text(
-            text = "Analista de Datos Junior",
-            fontSize = 26.sp
-        )
+        val o = oferta
+        if (o == null) {
+            Text("Cargando oferta...")
+            return@Column
+        }
+
+        Text(text = o.titulo, fontSize = 26.sp)
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = "Data Solutions",
-            fontSize = 18.sp
-        )
+        Text(text = o.empresa, fontSize = 18.sp)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            AssistChip(
-                onClick = {},
-                label = {
-                    Text("Pasantía")
-                }
-            )
-
-            AssistChip(
-                onClick = {},
-                label = {
-                    Text("Remoto")
-                }
-            )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(onClick = {}, label = { Text(o.tipo) })
+            AssistChip(onClick = {}, label = { Text(o.modalidad) })
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
 
                 Text(
-                    text = "✓ Válida para requisito de grado",
+                    text = if (o.validaRequisitoGrado)
+                        "✓ Válida para requisito de grado"
+                    else
+                        "No válida para requisito de grado",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = " Ubicación",
-                    fontSize = 16.sp
-                )
-
-                Text(
-                    text = "Remoto"
-                )
+                Text(text = "📍 Ubicación", fontSize = 16.sp)
+                Text(text = o.ubicacion)
 
                 Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = "⏱ Duración",
-                    fontSize = 16.sp
-                )
-
-                Text(
-                    text = "6 meses"
-                )
+                Text(text = "⏱ Duración", fontSize = 16.sp)
+                Text(text = o.duracion)
 
                 Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = " Horario",
-                    fontSize = 16.sp
-                )
-
-                Text(
-                    text = "Medio tiempo"
-                )
+                Text(text = "🕒 Horario", fontSize = 16.sp)
+                Text(text = o.horario)
 
                 Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = " Remuneración",
-                    fontSize = 16.sp
-                )
-
-                Text(
-                    text = "$1.300.000"
-                )
+                Text(text = "💰 Remuneración", fontSize = 16.sp)
+                Text(text = o.remuneracion)
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = "Responsabilidades",
-            style = MaterialTheme.typography.titleLarge
-        )
-
+        Text(text = "Responsabilidades", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "• Analizar datos"
-        )
-
-        Text(
-            text = "• Crear reportes"
-        )
-
-        Text(
-            text = "• Apoyar al equipo"
-        )
+        o.listaResponsabilidades.forEach { Text(text = "• $it") }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = "Requisitos",
-            style = MaterialTheme.typography.titleLarge
-        )
-
+        Text(text = "Requisitos", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "• Estudiante universitario"
-        )
-
-        Text(
-            text = "• Conocimientos de Excel"
-        )
-
-        Text(
-            text = "• Manejo básico de Python"
-        )
+        o.listaRequisitos.forEach { Text(text = "• $it") }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // ---------- POSTULARME ----------
+        val yaPostulado = o.estadoPostulacion != null
+
         Button(
-            onClick = {},
+            onClick = { viewModel.postular(o.id) },
+            enabled = !yaPostulado,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Postularme ahora")
+            Text(
+                if (yaPostulado) "✓ Ya te postulaste (${o.estadoPostulacion})"
+                else "Postularme ahora"
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        // ---------- GUARDAR ----------
         OutlinedButton(
-            onClick = {},
+            onClick = { viewModel.alternarGuardada(o) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Guardar oferta")
+            Icon(
+                imageVector = if (o.guardada) Icons.Default.Bookmark
+                else Icons.Default.BookmarkBorder,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (o.guardada) "Quitar de guardados" else "Guardar oferta")
         }
 
         Spacer(modifier = Modifier.height(16.dp))

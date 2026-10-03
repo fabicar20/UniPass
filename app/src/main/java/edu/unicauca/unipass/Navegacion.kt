@@ -14,168 +14,133 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+
+private data class DestinoBarra(
+    val ruta: String,
+    val etiqueta: String,
+    val icono: ImageVector
+)
+
+private val destinosBarra = listOf(
+    DestinoBarra("inicio", "Inicio", Icons.Default.Home),
+    DestinoBarra("buscar", "Buscar", Icons.Default.Search),
+    DestinoBarra("postulaciones", "Postulaciones", Icons.Default.Description),
+    DestinoBarra("guardados", "Guardados", Icons.Default.Bookmark),
+    DestinoBarra("perfil", "Perfil", Icons.Default.Person)
+)
 
 @Composable
 fun Navegacion() {
 
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = "login"
-    ) {
+    // Un solo ViewModel compartido por todas las pantallas
+    val viewModel: OfertasViewModel = viewModel()
 
-        composable("login") {
-            LoginScreen(
-                onIniciarSesion = {
-                    navController.navigate("inicio")
-                }
-            )
-        }
+    val entradaActual by navController.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route
 
-        composable("inicio") {
-            PantallaPrincipal(navController)
-        }
-
-        composable("detalle") {
-            PantallaDetalle(
-                onVolver = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable("buscar") {
-            PantallaBusqueda(
-                onOfertaClick = {
-                    navController.navigate("detalle")
-                }
-            )
-        }
-
-        composable("postulaciones") {
-            PantallaPostulaciones()
-        }
-
-        composable("guardados") {
-            PantallaGuardados()
-        }
-
-        composable("perfil") {
-            PantallaPerfil()
-        }
-    }
-}
-
-@Composable
-fun PantallaPrincipal(navController: NavHostController) {
+    // La barra inferior se ve en las 5 pestañas (no en login ni en detalle)
+    val mostrarBarra = destinosBarra.any { it.ruta == rutaActual }
 
     Scaffold(
         bottomBar = {
-
-            NavigationBar {
-
-                NavigationBarItem(
-                    selected = true,
-                    onClick = {
-                        navController.navigate("inicio")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Inicio"
+            if (mostrarBarra) {
+                NavigationBar {
+                    destinosBarra.forEach { destino ->
+                        NavigationBarItem(
+                            selected = rutaActual == destino.ruta,
+                            onClick = {
+                                navController.navigate(destino.ruta) {
+                                    popUpTo("inicio") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = destino.icono,
+                                    contentDescription = destino.etiqueta
+                                )
+                            },
+                            label = { Text(destino.etiqueta) }
                         )
-                    },
-                    label = {
-                        Text("Inicio")
                     }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {
-                        navController.navigate("buscar")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Buscar"
-                        )
-                    },
-                    label = {
-                        Text("Buscar")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {
-                        navController.navigate("postulaciones")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Description,
-                            contentDescription = "Postulaciones"
-                        )
-                    },
-                    label = {
-                        Text("Postulaciones")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {
-                        navController.navigate("guardados")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Bookmark,
-                            contentDescription = "Guardados"
-                        )
-                    },
-                    label = {
-                        Text("Guardados")
-                    }
-                )
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {
-                        navController.navigate("perfil")
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Perfil"
-                        )
-                    },
-                    label = {
-                        Text("Perfil")
-                    }
-                )
+                }
             }
         }
     ) { paddingValues ->
 
-        PantallaInicio(
-            modifier = Modifier.padding(paddingValues),
-            onOfertaClick = {
-                navController.navigate("detalle")
+        NavHost(
+            navController = navController,
+            startDestination = "login",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+
+            composable("login") {
+                LoginScreen(
+                    onIniciarSesion = {
+                        navController.navigate("inicio") {
+                            // Quita el login del historial: "atrás" ya no vuelve a él
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                )
             }
-        )
+
+            composable("inicio") {
+                PantallaInicio(
+                    viewModel = viewModel,
+                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
+                )
+            }
+
+            composable("buscar") {
+                PantallaBusqueda(
+                    viewModel = viewModel,
+                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
+                )
+            }
+
+            composable("postulaciones") {
+                PantallaPostulaciones(
+                    viewModel = viewModel,
+                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
+                )
+            }
+
+            composable("guardados") {
+                PantallaGuardados(
+                    viewModel = viewModel,
+                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
+                )
+            }
+
+            composable("perfil") {
+                PantallaPerfil()
+            }
+
+            composable(
+                route = "detalle/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.IntType })
+            ) { entrada ->
+                val id = entrada.arguments?.getInt("id") ?: 0
+                PantallaDetalle(
+                    id = id,
+                    viewModel = viewModel,
+                    onVolver = { navController.popBackStack() }
+                )
+            }
+        }
     }
-}
-
-@Composable
-fun PantallaSimple(nombrePantalla: String) {
-
-    Text(
-        text = nombrePantalla
-    )
 }

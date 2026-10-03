@@ -1,7 +1,8 @@
 package edu.unicauca.unipass
 
+
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,15 +10,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,12 +30,12 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun PantallaBusqueda(
-    onOfertaClick: () -> Unit = {}
+    viewModel: OfertasViewModel,
+    onOfertaClick: (Int) -> Unit = {}
 ) {
 
-    var busqueda by remember {
-        mutableStateOf("")
-    }
+    val ofertas by viewModel.ofertas.collectAsState()
+    var busqueda by remember { mutableStateOf(viewModel.consulta.value) }
 
     LazyColumn(
         modifier = Modifier
@@ -43,11 +45,7 @@ fun PantallaBusqueda(
     ) {
 
         item {
-
-            Text(
-                text = "Buscar oportunidades",
-                fontSize = 26.sp
-            )
+            Text(text = "Buscar oportunidades", fontSize = 26.sp)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -55,6 +53,7 @@ fun PantallaBusqueda(
                 value = busqueda,
                 onValueChange = {
                     busqueda = it
+                    viewModel.buscar(it)
                 },
                 leadingIcon = {
                     Icon(
@@ -62,182 +61,55 @@ fun PantallaBusqueda(
                         contentDescription = "Buscar"
                     )
                 },
-                placeholder = {
-                    Text("Buscar una oportunidad")
-                },
+                placeholder = { Text("Buscar una oportunidad") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
         }
 
         item {
-
-            Text(
-                text = "Filtros",
-                style = MaterialTheme.typography.titleLarge
-            )
+            Text(text = "Filtros", style = MaterialTheme.typography.titleLarge)
         }
 
         item {
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text("Universidad")
-                    }
-                )
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text("Carrera")
-                    }
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AssistChip(onClick = {}, label = { Text("Universidad") })
+                AssistChip(onClick = {}, label = { Text("Carrera") })
             }
         }
 
         item {
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text("Semestre")
-                    }
-                )
-
-                AssistChip(
-                    onClick = {},
-                    label = {
-                        Text("Ubicación")
-                    }
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AssistChip(onClick = {}, label = { Text("Semestre") })
+                AssistChip(onClick = {}, label = { Text("Ubicación") })
             }
         }
 
         item {
-
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "12 oportunidades encontradas",
+                text = "${ofertas.size} oportunidades encontradas",
                 fontSize = 18.sp
             )
 
             Text(
                 text = "Limpiar filtros",
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                modifier = Modifier.clickable {
+                    busqueda = ""
+                    viewModel.buscar("")
+                }
             )
         }
 
-        item {
-
-            Card(
-                onClick = {
-                    onOfertaClick()
-                },
-                modifier = Modifier.fillMaxWidth()
+        items(ofertas, key = { it.id }) { oferta ->
+            OfertaCard(
+                oferta = oferta,
+                onClick = { onOfertaClick(oferta.id) }
             ) {
-
-                Column(
-                    modifier = Modifier.padding(14.dp)
-                ) {
-
-                    Text(
-                        text = "Practicante de Desarrollo de Software",
-                        fontSize = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text("Empresa Tech")
-
-                    Text(" Popayán, Cauca")
-
-                    Text(" Pasantía")
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "✓ Requisito de grado",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        item {
-
-            Card(
-                onClick = {
-                    onOfertaClick()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier = Modifier.padding(14.dp)
-                ) {
-
-                    Text(
-                        text = "Analista de Datos Junior",
-                        fontSize = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text("Data Solutions")
-
-                    Text(" Remoto")
-
-                    Text(" Pasantía")
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "✓ Requisito de grado",
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        item {
-
-            Card(
-                onClick = {
-                    onOfertaClick()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
-                Column(
-                    modifier = Modifier.padding(14.dp)
-                ) {
-
-                    Text(
-                        text = "Practicante de Redes",
-                        fontSize = 18.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text("Telecomunicaciones del Cauca")
-
-                    Text(" Popayán, Cauca")
-
-                    Text(" Pasantía")
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
+                if (oferta.validaRequisitoGrado) {
                     Text(
                         text = "✓ Requisito de grado",
                         color = MaterialTheme.colorScheme.primary
