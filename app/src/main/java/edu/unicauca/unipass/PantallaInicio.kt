@@ -1,6 +1,7 @@
 package edu.unicauca.unipass
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +37,9 @@ fun PantallaInicio(
 
     val ofertas by viewModel.ofertas.collectAsState()
     var busqueda by remember { mutableStateOf(viewModel.consulta.value) }
+    var menuUbicacionAbierto by remember { mutableStateOf(false) }
+    var menuModalidadAbierto by remember { mutableStateOf(false) }
+    var menuTipoAbierto by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -93,14 +99,121 @@ fun PantallaInicio(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = {}, label = { Text("Carrera") })
-                AssistChip(onClick = {}, label = { Text("Ubicación") })
+                Box {
+                    AssistChip(
+                        onClick = { menuUbicacionAbierto = true },
+                        label = { Text("Ubicación") }
+                    )
+
+                    DropdownMenu(
+                        expanded = menuUbicacionAbierto,
+                        onDismissRequest = {
+                            menuUbicacionAbierto = false
+                        }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Todas") },
+                            onClick = {
+                                viewModel.filtrarPorUbicacion(null)
+                                menuUbicacionAbierto = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Popayán, Cauca") },
+                            onClick = {
+                                viewModel.filtrarPorUbicacion("Popayán, Cauca")
+                                menuUbicacionAbierto = false
+                            }
+                        )
+                    }
+                }
             }
         }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = {}, label = { Text("Modalidad") })
-                AssistChip(onClick = {}, label = { Text("Tipo") })
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {Box {
+                AssistChip(
+                    onClick = { menuModalidadAbierto = true },
+                    label = { Text("Modalidad") }
+                )
+
+                DropdownMenu(
+                    expanded = menuModalidadAbierto,
+                    onDismissRequest = {
+                        menuModalidadAbierto = false
+                    }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Todas") },
+                        onClick = {
+                            viewModel.limpiarFiltros()
+                            menuModalidadAbierto = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Presencial") },
+                        onClick = {
+                            viewModel.filtrarPorModalidad("Presencial")
+                            menuModalidadAbierto = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Remoto") },
+                        onClick = {
+                            viewModel.filtrarPorModalidad("Remoto")
+                            menuModalidadAbierto = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Híbrido") },
+                        onClick = {
+                            viewModel.filtrarPorModalidad("Híbrido")
+                            menuModalidadAbierto = false
+                        }
+                    )
+                }
+            }
+                Box {
+                    AssistChip(
+                        onClick = { menuTipoAbierto = true },
+                        label = { Text("Tipo") }
+                    )
+
+                    DropdownMenu(
+                        expanded = menuTipoAbierto,
+                        onDismissRequest = {
+                            menuTipoAbierto = false
+                        }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Todos") },
+                            onClick = {
+                                viewModel.limpiarFiltros()
+                                menuTipoAbierto = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Pasantía") },
+                            onClick = {
+                                viewModel.filtrarPorTipo("Pasantía")
+                                menuTipoAbierto = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Empleo") },
+                            onClick = {
+                                viewModel.filtrarPorTipo("Empleo")
+                                menuTipoAbierto = false
+                            }
+                        )
+                    }
+                }
             }
         }
 
