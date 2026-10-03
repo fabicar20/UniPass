@@ -3,6 +3,7 @@ package edu.unicauca.unipass
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +39,7 @@ fun PantallaBusqueda(
 
     val ofertas by viewModel.ofertas.collectAsState()
     var busqueda by remember { mutableStateOf(viewModel.consulta.value) }
+    var menuUbicacionAbierto by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -81,7 +85,35 @@ fun PantallaBusqueda(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = {}, label = { Text("Semestre") })
-                AssistChip(onClick = {}, label = { Text("Ubicación") })
+                Box {
+                    AssistChip(
+                        onClick = { menuUbicacionAbierto = true },
+                        label = { Text("Ubicación") }
+                    )
+
+                    DropdownMenu(
+                        expanded = menuUbicacionAbierto,
+                        onDismissRequest = {
+                            menuUbicacionAbierto = false
+                        }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Todas") },
+                            onClick = {
+                                viewModel.filtrarPorUbicacion(null)
+                                menuUbicacionAbierto = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Popayán, Cauca") },
+                            onClick = {
+                                viewModel.filtrarPorUbicacion("Popayán, Cauca")
+                                menuUbicacionAbierto = false
+                            }
+                        )
+                    }
+                }
             }
         }
 

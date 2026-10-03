@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfertasViewModel(app: Application) : AndroidViewModel(app) {
@@ -20,10 +21,26 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
     private val _consulta = MutableStateFlow("")
     val consulta: StateFlow<String> = _consulta
 
+    private val _ubicacionSeleccionada = MutableStateFlow<String?>(null)
+    val ubicacionSeleccionada: StateFlow<String?> = _ubicacionSeleccionada
+
     /** Lista filtrada por el texto de búsqueda. */
-    val ofertas: StateFlow<List<Oferta>> = _consulta
-        .flatMapLatest { repo.ofertas(it) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val ofertas: StateFlow<List<Oferta>> =
+        combine(_consulta, _ubicacionSeleccionada) { texto, ubicacion ->
+            texto to ubicacion
+        }
+            .flatMapLatest { (texto, ubicacion) ->
+                if (ubicacion == null) {
+                    repo.ofertas(texto)
+                } else {
+                    repo.ofertasPorUbicacion(ubicacion)
+                }
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                emptyList()
+            )
 
     val guardadas: StateFlow<List<Oferta>> = repo.guardadas
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -36,6 +53,10 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun buscar(texto: String) { _consulta.value = texto }
+
+    fun filtrarPorUbicacion(ubicacion: String?) {
+        _ubicacionSeleccionada.value = ubicacion
+    }
 
     fun ofertaPorId(id: Int): Flow<Oferta?> = repo.ofertaPorId(id)
 

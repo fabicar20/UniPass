@@ -25,6 +25,16 @@ interface OfertaDao {
     )
     fun buscar(texto: String): Flow<List<Oferta>>
 
+    @Query(
+        """
+    SELECT * FROM ofertas
+    WHERE ubicacion = :ubicacion
+    ORDER BY id DESC
+    """
+    )
+    fun buscarPorUbicacion(ubicacion: String): Flow<List<Oferta>>
+
+
     @Query("SELECT * FROM ofertas WHERE id = :id")
     fun observarPorId(id: Int): Flow<Oferta?>
 

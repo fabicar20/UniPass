@@ -7,6 +7,9 @@ class OfertaRepository(private val dao: OfertaDao) {
     fun ofertas(texto: String = ""): Flow<List<Oferta>> =
         if (texto.isBlank()) dao.observarTodas() else dao.buscar(texto.trim())
 
+    fun ofertasPorUbicacion(ubicacion: String): Flow<List<Oferta>> =
+        dao.buscarPorUbicacion(ubicacion)
+
     fun ofertaPorId(id: Int): Flow<Oferta?> = dao.observarPorId(id)
 
     val guardadas: Flow<List<Oferta>> = dao.observarGuardadas()

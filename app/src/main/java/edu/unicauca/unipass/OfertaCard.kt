@@ -34,8 +34,8 @@ fun OfertaCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(text = oferta.empresa)
-            Text(text = "📍 ${oferta.ubicacion}")
-            Text(text = "💼 ${oferta.tipo} · ${oferta.modalidad}")
+            Text(text = " ${oferta.ubicacion}")
+            Text(text = " ${oferta.tipo} · ${oferta.modalidad}")
 
             Spacer(modifier = Modifier.height(6.dp))
 
