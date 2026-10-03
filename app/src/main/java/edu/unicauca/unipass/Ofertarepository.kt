@@ -5,13 +5,29 @@ import kotlinx.coroutines.flow.Flow
 class OfertaRepository(private val dao: OfertaDao) {
 
     fun ofertas(texto: String = ""): Flow<List<Oferta>> =
-        if (texto.isBlank()) dao.observarTodas() else dao.buscar(texto.trim())
+        if (texto.isBlank()) {
+            dao.observarTodas()
+        } else {
+            dao.buscar(texto.trim())
+        }
 
-    fun ofertaPorId(id: Int): Flow<Oferta?> = dao.observarPorId(id)
+    fun ofertasPorUbicacion(ubicacion: String): Flow<List<Oferta>> =
+        dao.buscarPorUbicacion(ubicacion)
 
-    val guardadas: Flow<List<Oferta>> = dao.observarGuardadas()
+    fun ofertasPorModalidad(modalidad: String): Flow<List<Oferta>> =
+        dao.buscarPorModalidad(modalidad)
 
-    val postuladas: Flow<List<Oferta>> = dao.observarPostuladas()
+    fun ofertasPorTipo(tipo: String): Flow<List<Oferta>> =
+        dao.buscarPorTipo(tipo)
+
+    fun ofertaPorId(id: Int): Flow<Oferta?> =
+        dao.observarPorId(id)
+
+    val guardadas: Flow<List<Oferta>> =
+        dao.observarGuardadas()
+
+    val postuladas: Flow<List<Oferta>> =
+        dao.observarPostuladas()
 
     suspend fun alternarGuardada(oferta: Oferta) =
         dao.actualizarGuardada(oferta.id, !oferta.guardada)
@@ -22,15 +38,24 @@ class OfertaRepository(private val dao: OfertaDao) {
     suspend fun cambiarEstado(id: Int, estado: String?) =
         dao.actualizarEstadoPostulacion(id, estado)
 
-    /** Inserta los datos de ejemplo solo la primera vez (BD vacía). */
+    /**
+     * Inserta los datos de ejemplo solo la primera vez (BD vacía).
+     */
     suspend fun sembrarSiVacia() {
-        if (dao.contar() == 0) dao.insertarTodas(DatosIniciales.ofertas)
+        if (dao.contar() == 0) {
+            dao.insertarTodas(DatosIniciales.ofertas)
+        }
     }
 }
 
-/** Datos de ejemplo. Todas empiezan sin guardar y sin postular. */
+/**
+ * Datos de ejemplo.
+ * Todas empiezan sin guardar y sin postular.
+ */
 object DatosIniciales {
+
     val ofertas = listOf(
+
         Oferta(
             titulo = "Practicante de Desarrollo de Software",
             empresa = "Empresa Tech",
@@ -43,6 +68,7 @@ object DatosIniciales {
             responsabilidades = "Desarrollar funcionalidades\nProbar y depurar código\nApoyar al equipo",
             requisitos = "Estudiante universitario\nConocimientos de Kotlin o Java\nGit básico"
         ),
+
         Oferta(
             titulo = "Practicante de Redes y Telecomunicaciones",
             empresa = "Telecomunicaciones del Cauca",
@@ -55,6 +81,7 @@ object DatosIniciales {
             responsabilidades = "Configurar equipos de red\nMonitorear la red\nSoporte técnico",
             requisitos = "Estudiante de Telemática o afines\nConocimientos de redes"
         ),
+
         Oferta(
             titulo = "Analista de Datos Junior",
             empresa = "Data Solutions",
@@ -67,6 +94,7 @@ object DatosIniciales {
             responsabilidades = "Analizar datos\nCrear reportes\nApoyar al equipo",
             requisitos = "Estudiante universitario\nConocimientos de Excel\nManejo básico de Python"
         ),
+
         Oferta(
             titulo = "Desarrollador Android Junior",
             empresa = "App Studio",
@@ -79,6 +107,7 @@ object DatosIniciales {
             responsabilidades = "Construir pantallas con Jetpack Compose\nConsumir servicios web\nEscribir pruebas",
             requisitos = "Kotlin básico\nConocimientos de Compose"
         ),
+
         Oferta(
             titulo = "Auxiliar de Soporte Técnico TI",
             empresa = "Cauca Soluciones",
@@ -94,4 +123,3 @@ object DatosIniciales {
         )
     )
 }
-

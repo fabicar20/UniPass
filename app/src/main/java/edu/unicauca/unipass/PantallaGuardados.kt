@@ -67,7 +67,7 @@ fun PantallaGuardados(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "🔖 Oferta guardada",
+                        text = " Oferta guardada",
                         color = MaterialTheme.colorScheme.primary
                     )
 

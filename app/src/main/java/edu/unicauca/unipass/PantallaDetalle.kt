@@ -85,7 +85,7 @@ fun PantallaDetalle(
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = "📍 Ubicación", fontSize = 16.sp)
+                Text(text = " Ubicación", fontSize = 16.sp)
                 Text(text = o.ubicacion)
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -93,11 +93,11 @@ fun PantallaDetalle(
                 Text(text = o.duracion)
 
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = "🕒 Horario", fontSize = 16.sp)
+                Text(text = " Horario", fontSize = 16.sp)
                 Text(text = o.horario)
 
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(text = "💰 Remuneración", fontSize = 16.sp)
+                Text(text = " Remuneración", fontSize = 16.sp)
                 Text(text = o.remuneracion)
             }
         }

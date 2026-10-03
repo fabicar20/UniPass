@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface OfertaDao {
 
-    // ---------- Lectura (Flow: la UI se actualiza sola) ----------
+    // ---------- Lectura ----------
 
     @Query("SELECT * FROM ofertas ORDER BY id DESC")
     fun observarTodas(): Flow<List<Oferta>>
@@ -24,6 +24,33 @@ interface OfertaDao {
         """
     )
     fun buscar(texto: String): Flow<List<Oferta>>
+
+    @Query(
+        """
+        SELECT * FROM ofertas
+        WHERE ubicacion = :ubicacion
+        ORDER BY id DESC
+        """
+    )
+    fun buscarPorUbicacion(ubicacion: String): Flow<List<Oferta>>
+
+    @Query(
+        """
+        SELECT * FROM ofertas
+        WHERE modalidad = :modalidad
+        ORDER BY id DESC
+        """
+    )
+    fun buscarPorModalidad(modalidad: String): Flow<List<Oferta>>
+
+    @Query(
+        """
+        SELECT * FROM ofertas
+        WHERE tipo = :tipo
+        ORDER BY id DESC
+        """
+    )
+    fun buscarPorTipo(tipo: String): Flow<List<Oferta>>
 
     @Query("SELECT * FROM ofertas WHERE id = :id")
     fun observarPorId(id: Int): Flow<Oferta?>
