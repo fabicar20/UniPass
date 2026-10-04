@@ -23,6 +23,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+
+
 
 private data class DestinoBarra(
     val ruta: String,
@@ -48,6 +52,14 @@ fun Navegacion() {
 
     // ViewModel compartido para autenticación
     val authViewModel: AuthViewModel = viewModel()
+
+    val perfilViewModel: PerfilViewModel = viewModel()
+
+    // Cada vez que cambia la sesión, el ViewModel de ofertas cambia de usuario
+    LaunchedEffect(authViewModel.sesion?.id) {
+        viewModel.fijarUsuario(authViewModel.sesion?.id)
+        perfilViewModel.fijarUsuario(authViewModel.sesion?.id)
+    }
 
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
@@ -201,24 +213,35 @@ fun Navegacion() {
             // ---------- PERFIL ----------
 
             composable("perfil") {
+                val perfil by perfilViewModel.perfil.collectAsState()
 
                 PantallaPerfil(
                     nombre = authViewModel.sesion?.nombre ?: "",
                     correo = authViewModel.sesion?.correo ?: "",
-
-                    onAcerca = {
-                        navController.navigate("acerca")
-                    },
-
+                    perfil = perfil,
+                    onEditar = { navController.navigate("editar_perfil") },
+                    onAcerca = { navController.navigate("acerca") },
                     onCerrarSesion = {
                         authViewModel.cerrarSesion()
-
                         navController.navigate("login") {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
-                            }
+                            popUpTo(navController.graph.id) { inclusive = true }
                         }
                     }
+                )
+            }
+
+            composable("editar_perfil") {
+                val perfil by perfilViewModel.perfil.collectAsState()
+
+                PantallaEditarPerfil(
+                    perfil = perfil,
+                    onGuardar = { universidad, carrera, semestre, habilidades, idiomas, sobreMi ->
+                        perfilViewModel.guardar(
+                            universidad, carrera, semestre, habilidades, idiomas, sobreMi
+                        )
+                        navController.popBackStack()
+                    },
+                    onCancelar = { navController.popBackStack() }
                 )
             }
 

@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 
-/** Datos de la persona que inició sesión. */
+/**
+ * Datos de la persona que inició sesión.
+ */
 data class Sesion(
+    val id: Int,
     val nombre: String,
     val correo: String
 )
@@ -36,7 +39,11 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         error = null
     }
 
-    fun iniciarSesion(correo: String, clave: String, onExito: () -> Unit) {
+    fun iniciarSesion(
+        correo: String,
+        clave: String,
+        onExito: () -> Unit
+    ) {
         viewModelScope.launch {
             cargando = true
             error = null
@@ -44,8 +51,15 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             val correoLimpio = correo.trim().lowercase()
             val usuario = dao.buscarPorCorreo(correoLimpio)
 
-            if (usuario != null && usuario.claveHash == hash(correoLimpio, clave)) {
-                sesion = Sesion(usuario.nombre, usuario.correo)
+            if (usuario != null &&
+                usuario.claveHash == hash(correoLimpio, clave)
+            ) {
+                sesion = Sesion(
+                    usuario.id,
+                    usuario.nombre,
+                    usuario.correo
+                )
+
                 cargando = false
                 onExito()
             } else {
@@ -55,7 +69,12 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun registrar(nombre: String, correo: String, clave: String, onExito: () -> Unit) {
+    fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String,
+        onExito: () -> Unit
+    ) {
         viewModelScope.launch {
             cargando = true
             error = null
@@ -69,15 +88,21 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             val nombreLimpio = nombre.trim()
-            dao.insertar(
+
+            val nuevoId = dao.insertar(
                 Usuario(
                     nombre = nombreLimpio,
                     correo = correoLimpio,
                     claveHash = hash(correoLimpio, clave)
                 )
+            ).toInt()
+
+            sesion = Sesion(
+                nuevoId,
+                nombreLimpio,
+                correoLimpio
             )
 
-            sesion = Sesion(nombreLimpio, correoLimpio)
             cargando = false
             onExito()
         }
@@ -88,8 +113,13 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         error = null
     }
 
-    private fun hash(correo: String, clave: String): String =
+    private fun hash(
+        correo: String,
+        clave: String
+    ): String =
         MessageDigest.getInstance("SHA-256")
             .digest("$correo:$clave".toByteArray())
-            .joinToString("") { "%02x".format(it) }
+            .joinToString("") {
+                "%02x".format(it)
+            }
 }
