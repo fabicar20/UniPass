@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PantallaPerfil() {
+fun PantallaPerfil(
+    nombre: String = "",
+    correo: String = "",
+    onAcerca: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
+) {
 
     LazyColumn(
         modifier = Modifier
@@ -38,11 +45,18 @@ fun PantallaPerfil() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Fabiana Zuleima Cárdenas",
+                text = nombre.ifBlank { "Estudiante" },
                 fontSize = 22.sp
             )
 
             Spacer(modifier = Modifier.height(4.dp))
+
+            if (correo.isNotBlank()) {
+                Text(
+                    text = correo,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Text(
                 text = "Universidad del Cauca"
@@ -171,6 +185,28 @@ fun PantallaPerfil() {
                     )
                 }
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onAcerca,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Acerca de UniPass y créditos")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onCerrarSesion,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cerrar sesión")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

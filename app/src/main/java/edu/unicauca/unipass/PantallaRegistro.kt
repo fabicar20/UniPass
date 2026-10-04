@@ -1,10 +1,6 @@
 package edu.unicauca.unipass
 
-import android.os.Bundle
 import android.util.Patterns
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,33 +27,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.unicauca.unipass.ui.theme.UniPassTheme
-
-class MainActivity : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        enableEdgeToEdge()
-
-        setContent {
-            UniPassTheme {
-                Navegacion()
-            }
-        }
-    }
-}
 
 @Composable
-fun LoginScreen(
+fun PantallaRegistro(
     authViewModel: AuthViewModel,
-    onLoginExitoso: () -> Unit,
-    onCrearCuenta: () -> Unit,
-    viewModel: UniPassViewModel = viewModel()
+    onRegistroExitoso: () -> Unit,
+    onVolver: () -> Unit
 ) {
-
-    var errorLocal by remember { mutableStateOf<String?>(null) }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var correo by rememberSaveable { mutableStateOf("") }
+    var clave by rememberSaveable { mutableStateOf("") }
+    var confirmacion by rememberSaveable { mutableStateOf("") }
+    var errorLocal by rememberSaveable { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -69,7 +50,7 @@ fun LoginScreen(
     ) {
 
         Text(
-            text = "UniPass",
+            text = "Crear cuenta",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold
         )
@@ -77,42 +58,58 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Tu primer paso profesional",
+            text = "Empieza a buscar tu pasantía o práctica profesional",
             style = MaterialTheme.typography.bodyLarge
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = viewModel.correo,
-            onValueChange = { viewModel.actualizarCorreo(it) },
-            label = { Text("Correo institucional") },
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre completo") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = viewModel.contraseña,
-            onValueChange = { viewModel.actualizarContraseña(it) },
-            label = { Text("Contraseña") },
+            value = correo,
+            onValueChange = { correo = it },
+            label = { Text("Correo institucional") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = clave,
+            onValueChange = { clave = it },
+            label = { Text("Contraseña (mínimo 6 caracteres)") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = confirmacion,
+            onValueChange = { confirmacion = it },
+            label = { Text("Confirmar contraseña") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
 
         val mensaje = errorLocal ?: authViewModel.error
-
         if (mensaje != null) {
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = mensaje,
                 color = MaterialTheme.colorScheme.error,
@@ -125,43 +122,34 @@ fun LoginScreen(
         Button(
             onClick = {
                 errorLocal = when {
-                    !Patterns.EMAIL_ADDRESS
-                        .matcher(viewModel.correo.trim())
-                        .matches() ->
+                    nombre.isBlank() -> "Escribe tu nombre."
+                    !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches() ->
                         "Escribe un correo válido."
-
-                    viewModel.contraseña.isEmpty() ->
-                        "Escribe tu contraseña."
-
+                    clave.length < 6 ->
+                        "La contraseña debe tener mínimo 6 caracteres."
+                    clave != confirmacion -> "Las contraseñas no coinciden."
                     else -> null
                 }
-
                 if (errorLocal == null) {
-                    authViewModel.iniciarSesion(
-                        correo = viewModel.correo,
-                        clave = viewModel.contraseña,
-                        onExito = onLoginExitoso
-                    )
+                    authViewModel.registrar(nombre, correo, clave, onRegistroExitoso)
                 }
             },
             enabled = !authViewModel.cargando,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                if (authViewModel.cargando)
-                    "Ingresando..."
-                else
-                    "Iniciar sesión"
-            )
+            Text(if (authViewModel.cargando) "Creando cuenta..." else "Registrarme")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = onCrearCuenta,
+            onClick = {
+                authViewModel.limpiarError()
+                onVolver()
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Crear una cuenta")
+            Text("Ya tengo cuenta")
         }
     }
 }

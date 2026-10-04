@@ -1,8 +1,8 @@
 package edu.unicauca.unipass
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,10 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -28,18 +24,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Icon
 
 @Composable
 fun PantallaInicio(
     viewModel: OfertasViewModel,
+    nombre: String = "",
     onOfertaClick: (Int) -> Unit = {}
 ) {
 
     val ofertas by viewModel.ofertas.collectAsState()
-    var busqueda by remember { mutableStateOf(viewModel.consulta.value) }
-    var menuUbicacionAbierto by remember { mutableStateOf(false) }
-    var menuModalidadAbierto by remember { mutableStateOf(false) }
-    var menuTipoAbierto by remember { mutableStateOf(false) }
+
+    var busqueda by remember {
+        mutableStateOf(viewModel.consulta.value)
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -48,16 +46,34 @@ fun PantallaInicio(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
 
+        // ---------- Encabezado ----------
+
         item {
-            Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = "UniPass", fontSize = 28.sp)
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "UniPass",
+                fontSize = 28.sp
+            )
 
-            Text(text = "Hola, Fabiana", fontSize = 25.sp)
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = if (nombre.isBlank())
+                    "Hola"
+                else
+                    "Hola, ${nombre.trim().substringBefore(" ")}",
+                fontSize = 25.sp
+            )
+
+            Spacer(
+                modifier = Modifier.height(2.dp)
+            )
 
             Text(
                 text = "Encuentra oportunidades para tu carrera",
@@ -65,8 +81,13 @@ fun PantallaInicio(
             )
         }
 
+        // ---------- Barra de búsqueda ----------
+
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(
+                modifier = Modifier.height(8.dp)
+            )
 
             OutlinedTextField(
                 value = busqueda,
@@ -91,139 +112,60 @@ fun PantallaInicio(
             )
         }
 
+        // ---------- Filtros ----------
+
         item {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Filtros rápidos", fontSize = 22.sp)
+
+            Spacer(
+                modifier = Modifier.height(4.dp)
+            )
+
+            Text(
+                text = "Filtros rápidos",
+                fontSize = 22.sp
+            )
         }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(onClick = {}, label = { Text("Carrera") })
-                Box {
-                    AssistChip(
-                        onClick = { menuUbicacionAbierto = true },
-                        label = { Text("Ubicación") }
-                    )
+            FiltrosOferta(viewModel)
+        }
 
-                    DropdownMenu(
-                        expanded = menuUbicacionAbierto,
-                        onDismissRequest = {
-                            menuUbicacionAbierto = false
-                        }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Todas") },
-                            onClick = {
-                                viewModel.filtrarPorUbicacion(null)
-                                menuUbicacionAbierto = false
-                            }
-                        )
+        // ---------- Limpiar filtros ----------
 
-                        DropdownMenuItem(
-                            text = { Text("Popayán, Cauca") },
-                            onClick = {
-                                viewModel.filtrarPorUbicacion("Popayán, Cauca")
-                                menuUbicacionAbierto = false
-                            }
-                        )
-                    }
+        item {
+
+            Text(
+                text = "Limpiar filtros",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                modifier = Modifier.clickable {
+                    busqueda = ""
+                    viewModel.buscar("")
+                    viewModel.limpiarFiltros()
                 }
-            }
+            )
         }
+
+        // ---------- Ofertas ----------
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {Box {
-                AssistChip(
-                    onClick = { menuModalidadAbierto = true },
-                    label = { Text("Modalidad") }
-                )
 
-                DropdownMenu(
-                    expanded = menuModalidadAbierto,
-                    onDismissRequest = {
-                        menuModalidadAbierto = false
-                    }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Todas") },
-                        onClick = {
-                            viewModel.limpiarFiltros()
-                            menuModalidadAbierto = false
-                        }
-                    )
+            Spacer(
+                modifier = Modifier.height(6.dp)
+            )
 
-                    DropdownMenuItem(
-                        text = { Text("Presencial") },
-                        onClick = {
-                            viewModel.filtrarPorModalidad("Presencial")
-                            menuModalidadAbierto = false
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = { Text("Remoto") },
-                        onClick = {
-                            viewModel.filtrarPorModalidad("Remoto")
-                            menuModalidadAbierto = false
-                        }
-                    )
-
-                    DropdownMenuItem(
-                        text = { Text("Híbrido") },
-                        onClick = {
-                            viewModel.filtrarPorModalidad("Híbrido")
-                            menuModalidadAbierto = false
-                        }
-                    )
-                }
-            }
-                Box {
-                    AssistChip(
-                        onClick = { menuTipoAbierto = true },
-                        label = { Text("Tipo") }
-                    )
-
-                    DropdownMenu(
-                        expanded = menuTipoAbierto,
-                        onDismissRequest = {
-                            menuTipoAbierto = false
-                        }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Todos") },
-                            onClick = {
-                                viewModel.limpiarFiltros()
-                                menuTipoAbierto = false
-                            }
-                        )
-
-                        DropdownMenuItem(
-                            text = { Text("Pasantía") },
-                            onClick = {
-                                viewModel.filtrarPorTipo("Pasantía")
-                                menuTipoAbierto = false
-                            }
-                        )
-
-                        DropdownMenuItem(
-                            text = { Text("Empleo") },
-                            onClick = {
-                                viewModel.filtrarPorTipo("Empleo")
-                                menuTipoAbierto = false
-                            }
-                        )
-                    }
-                }
-            }
+            Text(
+                text = "Oportunidades para ti",
+                fontSize = 24.sp
+            )
         }
 
-        item {
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(text = "Oportunidades para ti", fontSize = 24.sp)
-        }
+        // ---------- Sin resultados ----------
 
         if (ofertas.isEmpty()) {
+
             item {
+
                 Text(
                     text = "No se encontraron ofertas.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -231,12 +173,22 @@ fun PantallaInicio(
             }
         }
 
-        items(ofertas, key = { it.id }) { oferta ->
+        // ---------- Lista de ofertas ----------
+
+        items(
+            ofertas,
+            key = { it.id }
+        ) { oferta ->
+
             OfertaCard(
                 oferta = oferta,
-                onClick = { onOfertaClick(oferta.id) }
+                onClick = {
+                    onOfertaClick(oferta.id)
+                }
             ) {
+
                 if (oferta.validaRequisitoGrado) {
+
                     Text(
                         text = "✓ Compatible con tu requisito de grado",
                         fontSize = 14.sp,
@@ -247,7 +199,10 @@ fun PantallaInicio(
         }
 
         item {
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(
+                modifier = Modifier.height(12.dp)
+            )
         }
     }
 }
