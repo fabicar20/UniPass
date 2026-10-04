@@ -1,19 +1,20 @@
 package edu.unicauca.unipass
 
-
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Oferta::class],
-    version = 2,
+    entities = [Oferta::class, Usuario::class],
+    version = 3,
     exportSchema = false
 )
 abstract class UniPassDatabase : RoomDatabase() {
 
     abstract fun ofertaDao(): OfertaDao
+
+    abstract fun usuarioDao(): UsuarioDao
 
     companion object {
 
@@ -31,9 +32,10 @@ abstract class UniPassDatabase : RoomDatabase() {
                     // Quítalo cuando tengas datos reales y escribe migraciones.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
-                    .also { INSTANCIA = it }
+                    .also {
+                        INSTANCIA = it
+                    }
             }
         }
     }
 }
-

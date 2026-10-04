@@ -1,4 +1,3 @@
-
 package edu.unicauca.unipass
 
 import androidx.compose.foundation.layout.padding
@@ -44,36 +43,52 @@ fun Navegacion() {
 
     val navController = rememberNavController()
 
-    // Un solo ViewModel compartido por todas las pantallas
+    // ViewModel compartido para las ofertas
     val viewModel: OfertasViewModel = viewModel()
+
+    // ViewModel compartido para autenticación
+    val authViewModel: AuthViewModel = viewModel()
 
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
 
-    // La barra inferior se ve en las 5 pestañas (no en login ni en detalle)
-    val mostrarBarra = destinosBarra.any { it.ruta == rutaActual }
+    // La barra inferior se ve en las 5 pestañas
+    // y no aparece en login, registro, acerca ni detalle.
+    val mostrarBarra = destinosBarra.any {
+        it.ruta == rutaActual
+    }
 
     Scaffold(
         bottomBar = {
             if (mostrarBarra) {
                 NavigationBar {
+
                     destinosBarra.forEach { destino ->
+
                         NavigationBarItem(
                             selected = rutaActual == destino.ruta,
+
                             onClick = {
                                 navController.navigate(destino.ruta) {
-                                    popUpTo("inicio") { saveState = true }
+                                    popUpTo("inicio") {
+                                        saveState = true
+                                    }
+
                                     launchSingleTop = true
                                     restoreState = true
                                 }
                             },
+
                             icon = {
                                 Icon(
                                     imageVector = destino.icono,
                                     contentDescription = destino.etiqueta
                                 )
                             },
-                            label = { Text(destino.etiqueta) }
+
+                            label = {
+                                Text(destino.etiqueta)
+                            }
                         )
                     }
                 }
@@ -87,58 +102,157 @@ fun Navegacion() {
             modifier = Modifier.padding(paddingValues)
         ) {
 
+            // ---------- LOGIN ----------
+
             composable("login") {
+
                 LoginScreen(
-                    onIniciarSesion = {
+                    authViewModel = authViewModel,
+
+                    onLoginExitoso = {
                         navController.navigate("inicio") {
-                            // Quita el login del historial: "atrás" ya no vuelve a él
-                            popUpTo("login") { inclusive = true }
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                        }
+                    },
+
+                    onCrearCuenta = {
+                        authViewModel.limpiarError()
+                        navController.navigate("registro")
+                    }
+                )
+            }
+
+            // ---------- REGISTRO ----------
+
+            composable("registro") {
+
+                PantallaRegistro(
+                    authViewModel = authViewModel,
+
+                    onRegistroExitoso = {
+                        navController.navigate("inicio") {
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                        }
+                    },
+
+                    onVolver = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            // ---------- INICIO ----------
+
+            composable("inicio") {
+
+                PantallaInicio(
+                    viewModel = viewModel,
+                    nombre = authViewModel.sesion?.nombre ?: "",
+
+                    onOfertaClick = { id ->
+                        navController.navigate("detalle/$id")
+                    }
+                )
+            }
+
+            // ---------- BUSCAR ----------
+
+            composable("buscar") {
+
+                PantallaBusqueda(
+                    viewModel = viewModel,
+
+                    onOfertaClick = { id ->
+                        navController.navigate("detalle/$id")
+                    }
+                )
+            }
+
+            // ---------- POSTULACIONES ----------
+
+            composable("postulaciones") {
+
+                PantallaPostulaciones(
+                    viewModel = viewModel,
+
+                    onOfertaClick = { id ->
+                        navController.navigate("detalle/$id")
+                    }
+                )
+            }
+
+            // ---------- GUARDADOS ----------
+
+            composable("guardados") {
+
+                PantallaGuardados(
+                    viewModel = viewModel,
+
+                    onOfertaClick = { id ->
+                        navController.navigate("detalle/$id")
+                    }
+                )
+            }
+
+            // ---------- PERFIL ----------
+
+            composable("perfil") {
+
+                PantallaPerfil(
+                    nombre = authViewModel.sesion?.nombre ?: "",
+                    correo = authViewModel.sesion?.correo ?: "",
+
+                    onAcerca = {
+                        navController.navigate("acerca")
+                    },
+
+                    onCerrarSesion = {
+                        authViewModel.cerrarSesion()
+
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
                         }
                     }
                 )
             }
 
-            composable("inicio") {
-                PantallaInicio(
-                    viewModel = viewModel,
-                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
+            // ---------- ACERCA DE UNIPASS ----------
+
+            composable("acerca") {
+
+                PantallaAcerca(
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
             }
 
-            composable("buscar") {
-                PantallaBusqueda(
-                    viewModel = viewModel,
-                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
-                )
-            }
-
-            composable("postulaciones") {
-                PantallaPostulaciones(
-                    viewModel = viewModel,
-                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
-                )
-            }
-
-            composable("guardados") {
-                PantallaGuardados(
-                    viewModel = viewModel,
-                    onOfertaClick = { id -> navController.navigate("detalle/$id") }
-                )
-            }
-
-            composable("perfil") {
-                PantallaPerfil()
-            }
+            // ---------- DETALLE ----------
 
             composable(
                 route = "detalle/{id}",
-                arguments = listOf(navArgument("id") { type = NavType.IntType })
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.IntType
+                    }
+                )
             ) { entrada ->
+
                 val id = entrada.arguments?.getInt("id") ?: 0
+
                 PantallaDetalle(
                     id = id,
                     viewModel = viewModel,
-                    onVolver = { navController.popBackStack() }
+
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }

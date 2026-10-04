@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -45,47 +44,23 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
         _tipoSeleccionado
 
     // ---------- Lista de ofertas ----------
+    // Texto de búsqueda + ubicación + modalidad + tipo se combinan entre sí.
 
     val ofertas: StateFlow<List<Oferta>> =
         combine(
-            _consulta,
+            _consulta.flatMapLatest { repo.ofertas(it) },
             _ubicacionSeleccionada,
             _modalidadSeleccionada,
             _tipoSeleccionado
-        ) { texto, ubicacion, modalidad, tipo ->
-            FiltrosActuales(
-                texto = texto,
-                ubicacion = ubicacion,
-                modalidad = modalidad,
-                tipo = tipo
-            )
-        }
-            .flatMapLatest { filtros ->
+        ) { lista, ubicacion, modalidad, tipo ->
 
-                when {
-                    filtros.ubicacion != null -> {
-                        repo.ofertasPorUbicacion(
-                            filtros.ubicacion
-                        )
-                    }
+            lista.filter { oferta ->
 
-                    filtros.modalidad != null -> {
-                        repo.ofertasPorModalidad(
-                            filtros.modalidad
-                        )
-                    }
-
-                    filtros.tipo != null -> {
-                        repo.ofertasPorTipo(
-                            filtros.tipo
-                        )
-                    }
-
-                    else -> {
-                        repo.ofertas(filtros.texto)
-                    }
-                }
+                (ubicacion == null || oferta.ubicacion == ubicacion) &&
+                        (modalidad == null || oferta.modalidad == modalidad) &&
+                        (tipo == null || oferta.tipo == tipo)
             }
+        }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
@@ -124,28 +99,18 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
         _consulta.value = texto
     }
 
-    // ---------- Filtro por ubicación ----------
+    // ---------- Filtros (cada uno es independiente) ----------
 
     fun filtrarPorUbicacion(ubicacion: String?) {
         _ubicacionSeleccionada.value = ubicacion
-        _modalidadSeleccionada.value = null
-        _tipoSeleccionado.value = null
     }
-
-    // ---------- Filtro por modalidad ----------
 
     fun filtrarPorModalidad(modalidad: String?) {
         _modalidadSeleccionada.value = modalidad
-        _ubicacionSeleccionada.value = null
-        _tipoSeleccionado.value = null
     }
-
-    // ---------- Filtro por tipo ----------
 
     fun filtrarPorTipo(tipo: String?) {
         _tipoSeleccionado.value = tipo
-        _ubicacionSeleccionada.value = null
-        _modalidadSeleccionada.value = null
     }
 
     // ---------- Limpiar filtros ----------
@@ -158,7 +123,7 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Detalle ----------
 
-    fun ofertaPorId(id: Int): Flow<Oferta?> =
+    fun ofertaPorId(id: Int): kotlinx.coroutines.flow.Flow<Oferta?> =
         repo.ofertaPorId(id)
 
     // ---------- Guardar oferta ----------
@@ -177,12 +142,3 @@ class OfertasViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 }
-
-// ---------- Estado actual de los filtros ----------
-
-private data class FiltrosActuales(
-    val texto: String,
-    val ubicacion: String?,
-    val modalidad: String?,
-    val tipo: String?
-)
