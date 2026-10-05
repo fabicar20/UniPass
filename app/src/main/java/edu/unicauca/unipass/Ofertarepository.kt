@@ -48,7 +48,7 @@ class OfertaRepository(private val dao: OfertaDao) {
     }
 }
 
-/**
+/**S
  * Datos de ejemplo.
  * Todas empiezan sin guardar y sin postular.
  */
@@ -120,6 +120,45 @@ object DatosIniciales {
             responsabilidades = "Atender solicitudes de soporte\nMantener equipos de cómputo",
             requisitos = "Tecnólogo o estudiante de últimos semestres\nBuena atención al cliente",
             validaRequisitoGrado = false
+        ),
+
+        Oferta(
+            titulo = "Practicante de Diseño UX/UI",
+            empresa = "Estudio Creativo Cauca",
+            ubicacion = "Remoto",
+            modalidad = "Remoto",
+            tipo = "Pasantía",
+            remuneracion = "$1.000.000",
+            duracion = "4 meses",
+            horario = "Medio tiempo",
+            responsabilidades = "Diseñar prototipos de pantallas\nApoyar en pruebas de usabilidad\nDocumentar la guía de estilos",
+            requisitos = "Estudiante universitario\nConocimientos de Figma\nPortafolio básico"
+        ),
+
+        Oferta(
+            titulo = "Desarrollador Web Junior",
+            empresa = "Soluciones Digitales SAS",
+            ubicacion = "Remoto",
+            modalidad = "Remoto",
+            tipo = "Empleo",
+            remuneracion = "$2.200.000",
+            duracion = "Indefinido",
+            horario = "Tiempo completo",
+            responsabilidades = "Mantener sitios web de clientes\nCorregir errores reportados\nParticipar en reuniones del equipo",
+            requisitos = "HTML, CSS y JavaScript\nGit básico\nBuena comunicación"
+        ),
+
+        Oferta(
+            titulo = "Practicante de Ingeniería Electrónica",
+            empresa = "Industrias del Valle",
+            ubicacion = "Popayán, Cauca",
+            modalidad = "Híbrido",
+            tipo = "Pasantía",
+            remuneracion = "$1.300.000",
+            duracion = "6 meses",
+            horario = "Tiempo completo",
+            responsabilidades = "Apoyar el mantenimiento de equipos\nElaborar informes técnicos",
+            requisitos = "Estudiante de últimos semestres\nConocimientos de circuitos"
         )
     )
 }
